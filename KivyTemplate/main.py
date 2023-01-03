@@ -66,6 +66,10 @@ class MainScreen(Screen):
         """
         SCREEN_MANAGER.current = 'passCode'
 
+    def quit(self):
+
+        quit()
+
 
 class TrajectoryScreen(Screen):
     """
