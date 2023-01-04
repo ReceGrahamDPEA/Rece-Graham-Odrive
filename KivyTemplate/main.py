@@ -8,12 +8,14 @@ from kivy.app import App
 from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.clock import Clock
 
 from pidev.MixPanel import MixPanel
 from pidev.kivy.PassCodeScreen import PassCodeScreen
 from pidev.kivy.PauseScreen import PauseScreen
 from pidev.kivy import DPEAButton
 from pidev.kivy import ImageButton
+from pidev.Joystick import Joystick
 
 sys.path.append("/home/soft-dev/Documents/dpea-odrive/")
 from odrive_helpers import *
@@ -27,6 +29,7 @@ TRAJ_SCREEN_NAME = 'traj'
 GPIO_SCREEN_NAME = 'gpio'
 ADMIN_SCREEN_NAME = 'admin'
 
+joy = Joystick(number = 0, ssh_deploy=True)
 
 class ProjectNameGUI(App):
     """
@@ -49,6 +52,14 @@ class MainScreen(Screen):
     Class to handle the main screen and its associated touch events
     """
 
+    def __init__(self, **kw):
+
+        Clock.schedule_interval(self.joy_update, 0.5)
+        print("Starting up!")
+
+        super().__init__(**kw)
+
+
     def switch_to_traj(self):
         SCREEN_MANAGER.transition.direction = "left"
         SCREEN_MANAGER.current = TRAJ_SCREEN_NAME
@@ -56,7 +67,6 @@ class MainScreen(Screen):
     def switch_to_gpio(self):
         SCREEN_MANAGER.transition.direction = "right"
         SCREEN_MANAGER.current = GPIO_SCREEN_NAME
-
 
     def admin_action(self):
         """
@@ -69,6 +79,11 @@ class MainScreen(Screen):
     def quit(self):
 
         quit()
+
+   def joy_update(self):
+        self.joy_x_val = joy.get_axis('x')
+        print(str(joy.get_axis('x')))
+        sleep(.1)
 
 
 class TrajectoryScreen(Screen):
