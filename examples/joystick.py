@@ -19,10 +19,12 @@ def print_info(ax: ODriveAxis):
 
 
 def joy_action(ax: ODriveAxis):
+    print(ax)
     pos = 0
     mode = 0
     while True:
         x_val = joy.get_axis("x")
+        print(str(x_val))
         vel = 0 if -.2 < x_val < .2 else 20 * x_val
 
         if x_val < -.2:

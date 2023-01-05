@@ -9,6 +9,7 @@ from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.clock import Clock
+from kivy.properties import ObjectProperty
 
 from pidev.MixPanel import MixPanel
 from pidev.kivy.PassCodeScreen import PassCodeScreen
@@ -16,6 +17,8 @@ from pidev.kivy.PauseScreen import PauseScreen
 from pidev.kivy import DPEAButton
 from pidev.kivy import ImageButton
 from pidev.Joystick import Joystick
+
+from examples.joystick import *
 
 sys.path.append("/home/soft-dev/Documents/dpea-odrive/")
 from odrive_helpers import *
@@ -29,12 +32,25 @@ TRAJ_SCREEN_NAME = 'traj'
 GPIO_SCREEN_NAME = 'gpio'
 ADMIN_SCREEN_NAME = 'admin'
 
-joy = Joystick(number = 0, ssh_deploy=True)
+od = find_odrive()
+ax = ODriveAxis(od.axis0)
+
+joy = Joystick(number=0, ssh_deploy=True)
+
 
 class ProjectNameGUI(App):
     """
     Class to handle running the GUI Application
     """
+
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        assert od.config.enable_brake_resistor is True, "Check for faulty brake resistor."
+
+        ax.set_gains()
+        if not ax.is_calibrated():
+            print("calibrating...")
+            ax.calibrate()
 
     def build(self):
         """
@@ -53,12 +69,8 @@ class MainScreen(Screen):
     """
 
     def __init__(self, **kw):
-
-        Clock.schedule_interval(self.joy_update, 0.5)
-        print("Starting up!")
-
         super().__init__(**kw)
-
+        print("Starting up!")
 
     def switch_to_traj(self):
         SCREEN_MANAGER.transition.direction = "left"
@@ -77,24 +89,40 @@ class MainScreen(Screen):
         SCREEN_MANAGER.current = 'passCode'
 
     def quit(self):
-
         quit()
-
-   def joy_update(self):
-        self.joy_x_val = joy.get_axis('x')
-        print(str(joy.get_axis('x')))
-        sleep(.1)
-
 
 class TrajectoryScreen(Screen):
     """
     Class to handle the trajectory control screen and its associated touch events
     """
 
+    def __init__(self, **kw):
+        super().__init__(**kw)
+
+        start_joy_thread(0)
+
     def switch_screen(self):
         SCREEN_MANAGER.transition.direction = "right"
         SCREEN_MANAGER.current = MAIN_SCREEN_NAME
 
+    def simple_velocity(self):
+        # SETTING VELOCITY
+        print("Current Position in Turns = ", round(ax.get_pos(), 2))
+        ax.set_vel_limit(5)  # Sets the velocity limit to be X turns/s
+        ax.set_vel(3)  # Starts turning the motor X turns/s
+        sleep(5)
+        print("Encoder Measured Velocity = ", round(ax.get_vel(), 2))
+        ax.set_vel(0)  # Stops motor
+        sleep(1)
+        print("Current Position in Turns = ", round(ax.get_pos(), 2))
+        ax.set_pos(0)
+        ax.wait_for_motor_to_stop()
+        print("Current Position in Turns = ", round(ax.get_pos(), 2))
+        sleep(3)
+
+    def joy_update(self):
+
+        joy_action(0)
 
 class GPIOScreen(Screen):
     """

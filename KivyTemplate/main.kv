@@ -31,15 +31,6 @@
         color: 0, 0, 1, 1
         on_press: root.quit()
 
-    DPEAButton:
-        id: test_button
-        text: "test"
-        font_size: self.width * .5
-        size_hint: .1, .2
-        pos_hint: {"x": .5, "y": .25}
-        color: 1, 0, 0, 1
-        on_press: root.joy_update()
-
 <TrajectoryScreen>:
 
     name: 'main'
@@ -53,6 +44,14 @@
         pos_hint: {"center_x": 0.5, "center_y":0.5}
         color: 0, 1, 0, 1
         on_press: root.switch_screen()
+
+    DPEAButton:
+        id: simple_velocity_button
+        text:'simple'
+        size: 100, 100
+        pos_hint: {"center_x": 0.5, "center_y":0.25}
+        color: .25, 1, 0, 1
+        on_press: root.simple_velocity()
 
 <GPIOScreen>:
 
